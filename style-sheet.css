@@ -28,7 +28,7 @@ a {
 	height: 35px;
 	padding-top: 4px;
 	color: #D5D3D3;
-	background-color: #212121;			 ;
+	background-color: #212121;
 	text-align: center;
 	cursor: pointer;
 	display: none;
@@ -214,3 +214,4 @@ header .logo span {
 		z-index: -1;
 		position: relative;
 	}
+}
