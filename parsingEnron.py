@@ -181,59 +181,6 @@ def calculate_DF(dataset):
     return dfDict
 
 
-# Calculate TF
-def calculate_TF(dfDict):
-    tfDict = {}
-    doc_words = get_doc_words(dfDict)
-    doc_words_count = len(doc_words)
-    for word, count in dfDict.items():
-        tfDict[word] = count / float(doc_words_count)
-    return tfDict
-
-
-#Calculate IDF
-def calculate_IDF(dataset):
-    
-    #total documents
-    N = len(dataset)
-    
-    dfDict = calculate_DF(dataset)
-    
-    idfDict = {}
-    
-    for word, val in dfDict.items():
-        idfDict[word] = math.log(N / float(val))
-
-    return idfDict
-
-
-#Calculate TFIDF
-def calculate_TFIDF(dataset):
-    
-    
-    N = len(dataset)
-    df_dict = calculate_DF(dataset)
-    
-    tf_idf = {}
-    
-    for i in range(N):
-        
-        tokens = dataset[i]
-        counter = Counter(tokens)
-        
-        for token in np.unique(tokens):
-
-            tf = counter[token]/len(tokens)
-            df = df_dict[token]
-            idf = np.log(N/(df))
-            tf_idf[i, token] = tf*idf
-            #tf_idf[filenames[i], token] = tf*idf
-        
-    return tf_idf
-
-
-
-
 def get_unique_words(dataset):
     
     unique_terms = []
@@ -245,16 +192,22 @@ def get_unique_words(dataset):
     unique_terms = set(unique_terms)
     return unique_terms
 
-unique_words = list(get_unique_words(dataset))
+
+
+list_of_documents = list(dataset.values())
+list_of_keys = list(dataset.keys())
+
+unique_words = list(get_unique_words(list_of_documents))
+#print(unique_words)
 
 N = len(dataset)
-df_dict = calculate_DF(dataset)
+df_dict = calculate_DF(list_of_documents)
     
 tf_idf = {}
     
 for i in range(N):
         
-    tokens = dataset[i]
+    tokens = list_of_documents[i]
     counter = Counter(tokens)
         
     for token in np.unique(tokens):
@@ -262,4 +215,13 @@ for i in range(N):
         tf = counter[token]/len(tokens)
         df = df_dict[token]
         idf = np.log(N/(df))
-        tf_idf[i, token] = tf*idf
+        tf_idf[list_of_keys[i], token] = tf*idf
+
+counter = 0
+for i in range(0, len(tf_idf)):
+    counter += 1
+    print("\n")
+    print(list(tf_idf.keys())[i])
+    print(list(tf_idf.values())[i])
+    if(counter == 50):
+        break
