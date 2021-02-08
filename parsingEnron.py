@@ -22,8 +22,13 @@ class Email:
     def __str__(self):
         return "From: %s \nTo: %s \n\n%s" %(self.sender, self.recipients, self.body)
 
+"""
+# # Reading data from the dataset
+"""
 
 emails = []
+email_addresses = []
+
 rootdir = "maildirtest"
 for directory, subdirectory, filenames in  os.walk(rootdir):
     for filename in filenames:
@@ -46,6 +51,20 @@ for directory, subdirectory, filenames in  os.walk(rootdir):
         else:
             recipients = ['None']
 
+        if emailParser['cc']:
+            cc = emailParser['cc']
+            cc = "".join(cc.split())
+            cc = cc.split(",")
+            recipients.extend(cc)
+
+        if emailParser['bcc']:
+            bcc = emailParser['bcc']
+            bcc = "".join(bcc.split())
+            bcc = bcc.split(",")
+            recipients.extend(bcc)
+
+        recipients = list(set(recipients))
+
         #reading the body section of the email
         body = emailParser.get_payload()
 
@@ -53,6 +72,11 @@ for directory, subdirectory, filenames in  os.walk(rootdir):
         email = Email(sender, recipients, body)
         emails.append(email)
 
+        #Adding all users (email adresses) to a list
+        email_addresses.extend(sender)
+        email_addresses.extend(recipients)
+
+email_addresses = list(set(email_addresses))
 
 # Creating a dictionary of all the combined documents between two distinct people
 dataset = {}
@@ -68,8 +92,10 @@ for email in emails:
             dataset[email.sender, recipient] = email.body
 
 
-# # Pre-Processing
 
+"""
+# # Pre-processing
+"""
 # Tokenizing the Data
 def tokenize(data):
     
@@ -124,9 +150,11 @@ def remove_symbols(data):
                 temp.append(t)
             
     return temp
-    
+
 # # Pre-processing the dataset
+
 #does not pay attention to email replies. Therfore it will include "original"
+#also does not take into consideration the "None" emails
 for data in dataset:
     dataset[data] = tokenize(dataset[data])
     dataset[data] = change_case(dataset[data])
@@ -134,33 +162,16 @@ for data in dataset:
     dataset[data] = stemming(dataset[data])
     dataset[data] = remove_symbols(dataset[data])
 
-def printDatasetData():
-    counter = 0
-    for data in dataset:
-        counter += 1
-        print("\n\n\n")
-        print(dataset[data])
-        if(counter == 2):
-            break
 
-def printDatasetKeys():
-    counter = 0
-    for data in dataset:
-        counter += 1
-        print("\n\n\n")
-        print(data)
-        if(counter == 2):
-            break
-
-printDatasetData()
-
-
+"""
 # # Calculating TFIDF
+"""
 
 # Returns a list of all the unique words in a dictionary
 def get_doc_words(dfDict):
     doc_words = [x for x in dfDict]
     return doc_words
+
 
 #Calculate DF
 def calculate_DF(dataset):
@@ -181,6 +192,7 @@ def calculate_DF(dataset):
     return dfDict
 
 
+#returning all unique words in the dataset
 def get_unique_words(dataset):
     
     unique_terms = []
@@ -198,13 +210,12 @@ list_of_documents = list(dataset.values())
 list_of_keys = list(dataset.keys())
 
 unique_words = list(get_unique_words(list_of_documents))
-#print(unique_words)
 
 N = len(dataset)
 df_dict = calculate_DF(list_of_documents)
     
 tf_idf = {}
-    
+
 for i in range(N):
         
     tokens = list_of_documents[i]
@@ -217,6 +228,8 @@ for i in range(N):
         idf = np.log(N/(df))
         tf_idf[list_of_keys[i], token] = tf*idf
 
+""" 
+# Printing tfidf values for all terms in all documents
 counter = 0
 for i in range(0, len(tf_idf)):
     counter += 1
@@ -225,3 +238,37 @@ for i in range(0, len(tf_idf)):
     print(list(tf_idf.values())[i])
     if(counter == 50):
         break
+"""
+
+# 
+""" 
+Get all documents which user X participates in (recieves or sends)
+Get all the TF.IDF values of said documents (tfidf of each term in each doc user X is found), and store their average
+Link the average as the TF.IDF associated with User X
+Repeat for all users
+"""
+
+user_tfidf = {}
+counter = 0
+for user in email_addresses:
+    counter += 1
+
+    #get dictionary of all words a particular user has in all their documents
+    dict_of_user = {k:v for k,v in tf_idf.items() if (k[0][0]==user or k[0][1]==user)}
+
+    list_of_values = dict_of_user.values()
+    avg_value = sum(list_of_values) / len(list_of_values)
+
+    user_tfidf[user] = avg_value
+
+    if(counter == 50):
+        break
+
+# Changing the dictionary to Vectors
+items = list(user_tfidf.items())
+user_Vectors = np.array(items)
+print(user_Vectors)
+
+"""
+For visualisations and clustering we can ignore the users which had very little participation
+"""
