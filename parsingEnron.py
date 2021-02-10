@@ -2,14 +2,15 @@
 import os
 from email.parser import Parser
 import nltk
-import json
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 
 #Libraries for TF-IDF, Cosine Similarity and K-means
 import math
 import numpy as np
-from collections import Counter 
+from collections import Counter
+import random
+import json
 
 
 #Object Email
@@ -29,7 +30,7 @@ class Email:
 emails = []
 email_addresses = []
 
-rootdir = "maildirtest"
+rootdir = "maildir"
 for directory, subdirectory, filenames in  os.walk(rootdir):
     for filename in filenames:
 
@@ -240,7 +241,7 @@ for i in range(0, len(tf_idf)):
         break
 """
 
-# 
+
 """ 
 Get all documents which user X participates in (recieves or sends)
 Get all the TF.IDF values of said documents (tfidf of each term in each doc user X is found), and store their average
@@ -249,26 +250,101 @@ Repeat for all users
 """
 
 user_tfidf = {}
+
+number_of_words = 20
+keyword_cloud = {}
+
 counter = 0
 for user in email_addresses:
     counter += 1
 
-    #get dictionary of all words a particular user has in all their documents
+    # Get dictionary of all words a particular user has in all their documents
     dict_of_user = {k:v for k,v in tf_idf.items() if (k[0][0]==user or k[0][1]==user)}
 
+    # Calculating the average values for each user
     list_of_values = dict_of_user.values()
-    avg_value = sum(list_of_values) / len(list_of_values)
+    if (len(list_of_values) > 0):
+        avg_value = sum(list_of_values)/len(list_of_values)
+    else:
+        avg_value = 0
 
     user_tfidf[user] = avg_value
 
-    if(counter == 50):
-        break
+    # Getting word cloud
+    user_cloud = sorted(dict_of_user.items(), key=lambda x:x[1], reverse=True)
+    
+    temp_list = []
+
+    if len(user_cloud) < number_of_words:
+        n = len(user_cloud)
+    else:
+        n = number_of_words
+
+    for i in range(0,n):
+        temp_list.append(user_cloud[i])
+            
+
+    keyword_cloud[user] = temp_list
+
 
 # Changing the dictionary to Vectors
 items = list(user_tfidf.items())
 user_Vectors = np.array(items)
-print(user_Vectors)
+#print(user_Vectors)
 
-"""
+
+""" 
+Use the correspondent vectors to cluster the users using the k-
+means algorithm. The choice of k is up to you. Note that you
+only need to do a single level of clustering, that is, no hierarchies
+are being requested. The clusters need to be visualised using an
+interactive bubble chart (or equivalent), and when a cluster bub-
+ble is clicked, the keyword-cloud representing that cluster should
+be displayed.
+(need to use cosine similarity)
 For visualisations and clustering we can ignore the users which had very little participation
+
+# # K-means
+
+# Setting random initial centroids
+init_centroids = random.sample(range(0, len(user_Vectors)), 3)
+print("init_centroids")
+print(init_centroids)
+
+#getting the data assigned to the random centroids
+centroids = []
+for i in init_centroids:
+    centroids.append(user_Vectors[i])
+print("centroids")
+print(centroids)
+
+# Claculating distance using cosine similarity
+def get_dist(a, b):
+    cos_sim = np.dot(a, b)/(np.linalg.norm(a)*np.linalg.norm(b))
+    return cos_sim
+
+# Assigning each item of data to a centroid
+def findClosestCentroids(ic, X):    #ic is a list of centroids, X is the np array of data
+    assigned_centroid = []
+    for i in X:
+        distance=[]
+        for j in ic:
+            distance.append(get_dist(i, j))
+        assigned_centroid.append(np.argmin(distance))
+    return assigned_centroid
 """
+
+
+# # Outputting results to JSON files
+
+#keyword cloud json
+with open('keyword_cloud.json', 'w') as outfile:
+    json.dump(keyword_cloud, outfile)
+
+
+""" 
+# prints the most active users
+ranked = user_Vectors[user_Vectors[:,1].argsort()[::-1]]
+print(ranked)
+
+ """
