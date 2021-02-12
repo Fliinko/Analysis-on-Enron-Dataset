@@ -30,7 +30,7 @@ class Email:
 emails = []
 email_addresses = []
 
-rootdir = "maildir"
+rootdir = "maildirtest"
 for directory, subdirectory, filenames in  os.walk(rootdir):
     for filename in filenames:
 
@@ -275,16 +275,18 @@ for user in email_addresses:
     
     temp_list = []
 
+    n = number_of_words
     if len(user_cloud) < number_of_words:
         n = len(user_cloud)
-    else:
-        n = number_of_words
 
     for i in range(0,n):
         temp_list.append(user_cloud[i])
             
 
     keyword_cloud[user] = temp_list
+
+    if(counter == 25):
+        break
 
 
 # Changing the dictionary to Vectors
@@ -303,6 +305,7 @@ ble is clicked, the keyword-cloud representing that cluster should
 be displayed.
 (need to use cosine similarity)
 For visualisations and clustering we can ignore the users which had very little participation
+"""
 
 # # K-means
 
@@ -315,31 +318,54 @@ print(init_centroids)
 centroids = []
 for i in init_centroids:
     centroids.append(user_Vectors[i])
+centroids = np.array(centroids)
 print("centroids")
 print(centroids)
 
-# Claculating distance using cosine similarity
+# Calculating distance using cosine similarity
 def get_dist(a, b):
-    cos_sim = np.dot(a, b)/(np.linalg.norm(a)*np.linalg.norm(b))
+    
+    a = np.array(a)
+    b = np.array(b)
+    
+    print("a: ", a, type(a))
+    print("b :", b, type(b))
+    print("np.dot(a, b)", np.dot(a, b))
+    print("np.linalg.norm(a)", np.linalg.norm(a))
+    print("np.linalg.norm(b)", np.linalg.norm(b))
+    print("np.linalg.norm(a)*np.linalg.norm(b)", np.linalg.norm(a) * np.linalg.norm(b))
+
+    cos_sim = ((np.dot(a, b))/((np.linalg.norm(a))*(np.linalg.norm(b))))
+
+    print("cosine sim: ", cos_sim)
     return cos_sim
 
+
 # Assigning each item of data to a centroid
-def findClosestCentroids(ic, X):    #ic is a list of centroids, X is the np array of data
+def findClosestCentroids(centroids, data):    #ic is a list of centroids, X is the np array of data
     assigned_centroid = []
-    for i in X:
+    for i in data:
         distance=[]
-        for j in ic:
-            distance.append(get_dist(i, j))
+        for j in centroids:
+            print("i: ", i, i[1], type(i[1]))
+            print("j :", j, j[1], type(j[1]))
+            distance.append(get_dist(float(i[1]), float(j[1])))
+        print(distance)
         assigned_centroid.append(np.argmin(distance))
     return assigned_centroid
-"""
+
+get_centroids = findClosestCentroids(centroids, user_Vectors)
+print("new centroids")
+print(get_centroids)
 
 
 # # Outputting results to JSON files
-
+"""
 #keyword cloud json
 with open('keyword_cloud.json', 'w') as outfile:
     json.dump(keyword_cloud, outfile)
+"""
+
 
 
 """ 
