@@ -4,6 +4,10 @@ from email.parser import Parser
 import nltk
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
+import pandas as pd
+
+import matplotlib.pyplot as plt
+from scipy.spatial import distance
 
 #Libraries for TF-IDF, Cosine Similarity and K-means
 import math
@@ -280,12 +284,13 @@ for user in email_addresses:
         n = len(user_cloud)
 
     for i in range(0,n):
-        temp_list.append(user_cloud[i])
+        temp_list.append(user_cloud[i][1])
+        temp_list.extend("weight: " + user_cloud[i][2])
             
 
     keyword_cloud[user] = temp_list
 
-    if(counter == 25):
+    if(counter == 10):
         break
 
 
@@ -305,7 +310,7 @@ ble is clicked, the keyword-cloud representing that cluster should
 be displayed.
 (need to use cosine similarity)
 For visualisations and clustering we can ignore the users which had very little participation
-"""
+
 
 # # K-means
 
@@ -335,11 +340,14 @@ def get_dist(a, b):
     print("np.linalg.norm(b)", np.linalg.norm(b))
     print("np.linalg.norm(a)*np.linalg.norm(b)", np.linalg.norm(a) * np.linalg.norm(b))
 
-    cos_sim = ((np.dot(a, b))/((np.linalg.norm(a))*(np.linalg.norm(b))))
+    cos_sim = ((np.dot(a, b))/np.multiply((np.linalg.norm(a)),(np.linalg.norm(b))))
 
     print("cosine sim: ", cos_sim)
     return cos_sim
 
+def get_cos(a, b):
+    cos = distance.cosine(a,b)
+    return cos
 
 # Assigning each item of data to a centroid
 def findClosestCentroids(centroids, data):    #ic is a list of centroids, X is the np array of data
@@ -349,21 +357,43 @@ def findClosestCentroids(centroids, data):    #ic is a list of centroids, X is t
         for j in centroids:
             print("i: ", i, i[1], type(i[1]))
             print("j :", j, j[1], type(j[1]))
-            distance.append(get_dist(float(i[1]), float(j[1])))
+            distance.append(get_cos(float(i[1]), float(j[1])))
         print(distance)
         assigned_centroid.append(np.argmin(distance))
     return assigned_centroid
 
-get_centroids = findClosestCentroids(centroids, user_Vectors)
-print("new centroids")
-print(get_centroids)
+
+#taking an average of all the data points of each centroid and moving the centroid to that average
+def calc_centroids(clusters, data):
+    new_centroids = []
+    new_df = pd.concat([pd.DataFrame(data), pd.DataFrame(clusters, columns=['Cluster'])], axis=1)
+    print(new_df)
+
+    for c in set(new_df['Cluster']):
+        current_cluster = new_df[new_df['Cluster'] == c][new_df.columns]   #[new_df.columns[:-1]]
+        cluster_mean = current_cluster.mean(axis=1)
+        print("cluster mean", cluster_mean) #cluster which node belogs to
+        new_centroids.append(cluster_mean)
+
+    return new_centroids
 
 
-# # Outputting results to JSON files
+#running the algorithms 10 times and plotting each result
+for i in range(10):
+    closest_centroids = findClosestCentroids(centroids, user_Vectors)
+    new_centroids = calc_centroids(closest_centroids, user_Vectors)
+    print("Clusters:\n",new_centroids)
+
 """
+# # Outputting results to JSON files
+
 #keyword cloud json
 with open('keyword_cloud.json', 'w') as outfile:
     json.dump(keyword_cloud, outfile)
+"""
+#k-means json
+with open('kmeans.json', 'w') as outfile:
+    json.dump(kmeans, outfile)
 """
 
 
