@@ -284,10 +284,12 @@ for user in email_addresses:
         n = len(user_cloud)
 
     for i in range(0,n):
-        temp_list.append(user_cloud[i][1])
+        print("user_cloud[i] ", user_cloud[i])
         print("user_cloud[i][1] ", user_cloud[i][1])
-        temp_list.extend("weight: " + user_cloud[i][2])
-        print("user_cloud[i][2])", + user_cloud[i][2])
+        print("user_cloud[i][0][1])", user_cloud[i][0][1])
+        temp_list.append(user_cloud[i][0][1])
+        temp_list.append("weight: " + user_cloud[i][1])
+        
 
     keyword_cloud[user] = temp_list
 
