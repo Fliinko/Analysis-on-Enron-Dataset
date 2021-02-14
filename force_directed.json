@@ -1,10 +1,1 @@
-{
-    "outlook-migration-team@enron.com": [
-        "children: None",
-        "children: outlook-migration-team@enron.com",
-        "children: k..allen@enron.com",
-        "children: heather.dunton@enron.com",
-        "children: pallen@enron.com",
-        "children: anchordesk_daily@anchordesk.zdlists.com",
-        "children: pallen@enron.com",
-        "children: subscriptions@intelligencepress.com",
+{"outlook-migration-team@enron.com": ["children: None", "children: outlook-migration-team@enron.com", "children: k..allen@enron.com", "children: heather.dunton@enron.com", "children: pallen@enron.com", "children: anchordesk_daily@anchordesk.zdlists.com", "children: pallen@enron.com", "children: subscriptions@intelligencepress.com", 

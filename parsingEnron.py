@@ -285,7 +285,7 @@ for user in email_addresses:
     for i in range(0,n):
         entry = []
         entry.append(user_cloud[i][0][1])
-        entry.append("weight: " + str(user_cloud[i][1]))
+        entry.append(user_cloud[i][1])
         temp_list.append(entry)
         
 
@@ -389,16 +389,26 @@ for i in range(10):
 # # Outputting results to JSON files
 
 #keyword cloud json
-"""
-with open('keyword_cloud_test.json', 'w') as outfile:
+with open('keyword_cloud.json', 'w') as outfile:
     json.dump(keyword_cloud, outfile)
-""" 
+
 
 #k-means json
 """ 
 with open('kmeans.json', 'w') as outfile:
     json.dump(kmeans, outfile)
 """ 
+
+ranked_users = user_Vectors[user_Vectors[:,1].argsort()[::-1]]
+users = {}
+for user, val in ranked_users:
+    print("user", user)
+    print("val", val)
+    users[user] = val
+with open('test.csv', 'w') as f:
+    for key in users.keys():
+        f.write("%s,%s\n"%(key,users[key]))
+
 
 #force-directed
 
@@ -440,11 +450,3 @@ for user, val in ranked_users:
 with open('users.json', 'w') as outfile:
     json.dump(users, outfile)
 """ 
-users = {}
-for user, val in ranked_users:
-    print("user", user)
-    print("val", val)
-    users[user] = val
-with open('test.csv', 'w') as f:
-    for key in my_dict.keys():
-        f.write("%s,%s\n"%(key,my_dict[key]))

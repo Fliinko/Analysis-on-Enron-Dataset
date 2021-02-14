@@ -72,6 +72,55 @@
         </div>
 
       </div>
+
+      <!--Keyword Cloud-->
+      <div class="panel-wrapper">
+        <div class="panel-head">
+          Keyword Cloud
+        </div>
+
+        <div class="panel-body">
+          This is body
+          <div id="cloud">
+            <script src="https://d3js.org/d3.v3.min.js"></script>
+            <script src="../d3.layout.cloud.js"></script>
+            <script>
+              var user = "grace.trent@enron.com"
+              d3.json('keyword_cloud.json', function (error, data) {
+
+                // get words as a list of objects of the form {text: 'asdf', size: 5}
+
+                var items = data[user]
+                var words = [];
+                var sizes = [];
+
+                items.forEach(element => {
+                  words.push(element[0])
+                  sizes.push(element[1])
+                });
+
+                console.log(words);
+                console.log(sizes);
+
+                words = words.map(function (word) {
+                  return {
+                    text: word,
+                    size: 12
+                  }
+                }); // now it has the correct format, but this is just an example
+
+                // then use it as input to the layout
+                d3.layout.cloud().size([300, 300])
+                  .words(words)
+                  .style("font-size", function (d) { return d.size + "px"; });
+
+              });
+            </script>
+
+          </div>
+        </div>
+
+      </div>
 </body>
 
 <!--
