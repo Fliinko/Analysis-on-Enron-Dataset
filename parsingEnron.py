@@ -96,8 +96,6 @@ for email in emails:
         else:
             dataset[email.sender, recipient] = email.body
 
-
-
 """
 # # Pre-processing
 """
@@ -278,17 +276,17 @@ for user in email_addresses:
     user_cloud = sorted(dict_of_user.items(), key=lambda x:x[1], reverse=True)
     
     temp_list = []
+    
 
     n = number_of_words
     if len(user_cloud) < number_of_words:
         n = len(user_cloud)
 
     for i in range(0,n):
-        print("user_cloud[i] ", user_cloud[i])
-        print("user_cloud[i][1] ", user_cloud[i][1])
-        print("user_cloud[i][0][1])", user_cloud[i][0][1])
-        temp_list.append(user_cloud[i][0][1])
-        temp_list.append("weight: " + user_cloud[i][1])
+        entry = []
+        entry.append(user_cloud[i][0][1])
+        entry.append("weight: " + str(user_cloud[i][1]))
+        temp_list.append(entry)
         
 
     keyword_cloud[user] = temp_list
@@ -391,19 +389,62 @@ for i in range(10):
 # # Outputting results to JSON files
 
 #keyword cloud json
-with open('keyword_cloud.json', 'w') as outfile:
-    json.dump(keyword_cloud, outfile)
 """
+with open('keyword_cloud_test.json', 'w') as outfile:
+    json.dump(keyword_cloud, outfile)
+""" 
+
 #k-means json
+""" 
 with open('kmeans.json', 'w') as outfile:
     json.dump(kmeans, outfile)
-"""
-
-
-
 """ 
-# prints the most active users
-ranked = user_Vectors[user_Vectors[:,1].argsort()[::-1]]
-print(ranked)
 
- """
+#force-directed
+
+edges = {}
+temp = []
+for k in dataset:
+
+    k0 = str(k[0])
+    k1 = str(k[1])
+    if k0 in edges.keys():
+        temp.append("children: " + k1)
+        edges[k0].append(temp)
+
+    else:
+        temp.append("children: " + k1)
+        edges[k0] = temp
+
+    if k[1] in edges.keys():    
+        temp.append("children: " + k0)
+        edges[k1].append(temp)
+    else:
+        temp.append("children: " + k0)
+        edges[k1] = temp
+
+with open('force_directed.json', 'w') as outfile:
+    json.dump(edges, outfile)
+
+
+# most active users
+""" 
+ranked_users = user_Vectors[user_Vectors[:,1].argsort()[::-1]]
+print(ranked_users)
+
+users = {}
+for user, val in ranked_users:
+    print("user", user)
+    print("val", val)
+    users[user] = val
+with open('users.json', 'w') as outfile:
+    json.dump(users, outfile)
+""" 
+users = {}
+for user, val in ranked_users:
+    print("user", user)
+    print("val", val)
+    users[user] = val
+with open('test.csv', 'w') as f:
+    for key in my_dict.keys():
+        f.write("%s,%s\n"%(key,my_dict[key]))

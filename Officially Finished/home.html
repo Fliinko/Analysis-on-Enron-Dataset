@@ -4,9 +4,7 @@
 <head>
   <meta charset="utf-8">
   <link rel="stylesheet" href="style-sheet.css">
-  <script src="https://d3js.org/d3.v4.min.js"></script>
-  <script src="//d3js.org/d3.v3.min.js"></script>
-  <script src="https://d3js.org/d3-selection-multi.v1.js"></script>
+
 </head>
 
 <header>
@@ -38,26 +36,44 @@
         <div class="panel-body">
           This is the Body
           <div id="force-directed">
+            <script src="//d3js.org/d3.v3.min.js"></script>
             <script type="text/javascript" src="forcedirected.js"></script>
           </div>
         </div>
+      </div>
 
-        <!--Bubble Chart-->
-        <div class="panel-wrapper">
-          <div class="panel-head">
-            Bubble Chart
-          </div>
-
-          <div class="panel-body">
-            This is body
-            <div>
-              <script type="text/javascript" src="bubble.js"></script>
-              <svg id="bubble-chart"></svg>
-            </div>
-          </div>
-
+      <!--Bubble Chart-->
+      <div class="panel-wrapper">
+        <div class="panel-head">
+          Bubble Chart
         </div>
+
+        <div class="panel-body">
+          This is body
+          <div id="bubble-chart">
+
+            <script src="https://d3js.org/d3-selection-multi.v1.js"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.6.0/d3.min.js"></script>
+            <script type="text/javascript" src="bubble.js"></script>
+            <script>
+
+              d3.json('users.json', function (error, data) {
+                if (error) {
+                  console.error('Error getting or parsing the data.');
+                  throw error;
+                }
+                var chart = bubbleChart().width(600).height(400).title("Users");
+                // selection.datum() returns the bound datum for the first element in the selection and doesn't join the specified array of data with the selected elements
+                d3.select('#bubble-chart').datum(data).call(chart);
+              });
+
+            </script>
+          </div>
+        </div>
+
+      </div>
 </body>
+
 <!--
 <div class="tooltip">
   <img alt="" />

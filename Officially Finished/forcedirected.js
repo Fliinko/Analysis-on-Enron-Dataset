@@ -18,7 +18,7 @@ var svg = d3.select("#force-directed").append("svg")
 var link = svg.selectAll(".link"),
     node = svg.selectAll(".node");
 
-d3.json("keyword_cloud.json", function (error, json) {
+d3.json("users.json", function (error, json) {
     if (error) throw error;
 
     root = json;
