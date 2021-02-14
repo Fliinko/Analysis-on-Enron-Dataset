@@ -1,58 +1,69 @@
 <!--https://codepen.io/rizwanahmed19/pen/KrYvwj-->
 <!DOCTYPE html>
-<header>
-  <div class="logo">Text Analysis<span>Source</span></div>
+
+<head>
+  <meta charset="utf-8">
   <link rel="stylesheet" href="style-sheet.css">
-  <script src="myscripts.js"></script>
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <script src="//d3js.org/d3.v3.min.js"></script>
+  <script src="https://d3js.org/d3-selection-multi.v1.js"></script>
+</head>
+
+<header>
+  <title>My Dashboard</title>
+  <div class="logo">Text Analysis<span>Source</span></div>
 </header>
 
-<div class="nav-btn">Menu</div>
-<div class="container">
-  
-  <div class="sidebar">
-    <nav>
-      <a href="#">Text Analysis<span>Task 1</span></a>
-      <ul>
-        <li class="active"><a href="#">Force-Directed Graph</a></li>
-        <li><a href="#">Word Cloud</a></li>
-      </ul>
-    </nav>
-  </div>
+<body>
+  <div class="nav-btn">Menu</div>
+  <div class="container">
 
-  <div class="main-content">
-    <h1>Dashboard</h1>
-
-    <!-- JavaScript Directed Graph-->
-    <div class="panel-wrapper">
-      <div class="panel-head">
-        Force Directed Graph
-        <head>
-            <title>Editable Force-Directed Layout</title>
-            <script src="https://d3js.org/d3.v4.min.js" type="text/javascript"></script>
-            <script src="https://d3js.org/d3-selection-multi.v1.js"></script>
-            <script type="text/javascript">
-            <script src="forcedirected.js">
-
+    <div class="sidebar">
+      <nav>
+        <a href="#">Text Analysis<span>Task 1</span></a>
+        <ul>
+          <li class="active"><a href="#">Force-Directed Graph</a></li>
+        </ul>
+      </nav>
     </div>
 
-    <div class="panel-body">
-     <div class="panel-wrapper">
+    <div class="main-content">
+      <h1>Dashboard</h1>
+
+      <!-- JavaScript Directed Graph-->
+      <div class="panel-wrapper">
         <div class="panel-head">
-            Bubble Chart
+          Force Directed Graph
         </div>
-    <div class="panel-body">
-        <svg id="bubble-chart"></svg>
-        <div class="tooltip">
-            <img alt="" />
-            <div>
-                <a></a>
-                <span></span>
-            </div>
+        <div class="panel-body">
+          This is the Body
+          <div id="force-directed">
+            <script type="text/javascript" src="forcedirected.js"></script>
+          </div>
         </div>
-            
-            <script src="https://d3js.org/d3.v6.js"></script>
-            <script src="bubble.js"></script>
-        </div>
-        </div>
-    </div>
 
+        <!--Bubble Chart-->
+        <div class="panel-wrapper">
+          <div class="panel-head">
+            Bubble Chart
+          </div>
+
+          <div class="panel-body">
+            This is body
+            <div>
+              <script type="text/javascript" src="bubble.js"></script>
+              <svg id="bubble-chart"></svg>
+            </div>
+          </div>
+
+        </div>
+</body>
+<!--
+<div class="tooltip">
+  <img alt="" />
+  <div>
+    <a></a>
+    <span></span>
+  </div>
+</div>
+-->
