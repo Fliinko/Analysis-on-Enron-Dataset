@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[4]:
+# In[37]:
 
 
 import csv
 import re
+import os
 import collections
 import operator
+from email.parser import Parser
 import json
 import numpy as np
 import networkx as nx
@@ -16,66 +18,113 @@ import matplotlib.pyplot as plt
 
 # Email object containing the properties in the JSON file
 
-# In[5]:
+# In[38]:
 
 
-class Email:
+class email:
     def __init__(self, sender, recipients, body):
         self.sender = sender
         self.recipients = recipients
         self.body = body
 
 
-# Using the inbuilt functions in the JSON library, the .json file was opened and a dataset was created
-
-# In[6]:
+# In[39]:
 
 
-with open("keyword_cloud_dict.json", encoding ="utf8") as fd:
-    emails = []
-    rd = json.load(fd)
-    
-    for row in rd:
-        emails.append(email(row))
+
+"""
+# # Reading data from the dataset
+"""
+
+emails = []
+email_addresses = []
+
+rootdir = "maildirtest"
+for directory, subdirectory, filenames in  os.walk(rootdir):
+    for filename in filenames:
+
+        #Reading data from file
+        with open(os.path.join(directory, filename), "r") as f:
+            data = f.read()
+
+        #Creating instance of the email.parser object
+        emailParser = Parser().parsestr(data)
+
+        #reading the from section of the email
+        sender = emailParser['from']
+
+        #reading the to section of the email, which can contain multiple recipients
+        if emailParser['to']:
+            recipients = emailParser['to']
+            recipients = "".join(recipients.split())
+            recipients = recipients.split(",")
+        else:
+            recipients = ['None']
+
+        if emailParser['cc']:
+            cc = emailParser['cc']
+            cc = "".join(cc.split())
+            cc = cc.split(",")
+            recipients.extend(cc)
+
+        if emailParser['bcc']:
+            bcc = emailParser['bcc']
+            bcc = "".join(bcc.split())
+            bcc = bcc.split(",")
+            recipients.extend(bcc)
+
+        recipients = list(set(recipients))
+
+        #reading the body section of the email
+        body = emailParser.get_payload()
+
+        #Creating an email object and appending it to the list of all emails
+        email = Email(sender, recipients, body)
+        emails.append(email)
+
+        #Adding all users (email adresses) to a list
+        email_addresses.extend(sender)
+        email_addresses.extend(recipients)
+
+email_addresses = list(set(email_addresses))
+
+
+# In[41]:
+
+
+# Creating a dictionary of all the combined documents between two distinct people
+dataset = {}
+for email in emails:
+    for recipient in email.recipients:
+        key1 = (email.sender, recipient)
+        key2 = (recipient, email.sender)
         
-    fd.close()
-
-
-# Creating a dictionary of edges. This is to set a key pair to a corresponding value. 
-# We can use the sender of the email and the recipients as the key with the number of times sent as the value.
-
-# In[7]:
-
-
-edges = {}
-
-for e in emails:
-    if "@" in e.sender:
-        sending = re.findall("@(/w+)", e.receiver)
-        for s in sending:
-            key = tuple([t.sender, s])
-            if key in edges.keys():
-                edges[key] += 1
-            else:
-                edges[key] = 1
+        if(key1 in dataset.keys()):
+            dataset[email.sender, recipient] += 1
+        elif (key2 in dataset.keys()):
+            dataset[recipient, email.sender] += 1
+        else:
+            dataset[email.sender, recipient] = 1
+            
+print(dataset)
 
 
 # Creating a Directed Graph using the edges found. 
 # A directed graph entails the nature of the email; ie. the sender and the recipients
 
-# In[8]:
+# In[42]:
 
 
 G = nx.DiGraph()
 
-for k,v in edges:
-    G.add_edge(k,v, weight=edges[(k,v)])
+for k,v in dataset:
+    G.add_edge(k,v, weight=dataset[(k,v)])
 
 
 # In Degree - Getting the number of vertices coming in to the node, from other connected nodes
 # Out Degree - Getting the number of vertices going out of the node, to other connected nodes
 
-# In[9]:
+# In[43]:
 
 
 inDegree = G.in_degree()
@@ -84,7 +133,7 @@ outDegree = G.out_degree()
 
 # Degree Distribution is the probability distribution of the in and out degrees over the whole network
 
-# In[10]:
+# In[44]:
 
 
 plt.title("Degree Histogram")
@@ -99,7 +148,7 @@ plt.show()
 
 # Scatter plot of the degree distribution
 
-# In[11]:
+# In[45]:
 
 
 plt.title("Degree Scatter")
@@ -124,7 +173,7 @@ plt.show()
 # For arbitrary graphs, we need to compute the shortest path between any two vertices and take the length of the greatest of these paths.
 # The algorithm starts by calculating the diameter of a graph made of variables and relations. A random node is picked in the tree and a breath first search is used to find the furthest node in the graph.
 
-# In[12]:
+# In[46]:
 
 
 def Diameter(emails):
@@ -137,7 +186,7 @@ def Diameter(emails):
 
 # Creates a subgraph of the largest weakly connected component
 
-# In[13]:
+# In[47]:
 
 
 largest_cc = max(nx.weakly_connected_components(G), key=len)
@@ -147,7 +196,7 @@ SG = G.subgraph(largest_cc)
 # Average Path Length is the sum of the path lengths between all pairs of nodes normalized by n*(n-1) where n is the number of nodes in the Graph (G).
 # Since it can only be executed on a connected graph, the AVP has to be calculated on the largest subgraph
 
-# In[14]:
+# In[48]:
 
 
 #Average Path Length
@@ -157,7 +206,7 @@ averagePathLength = nx.average_shortest_path_length(SG)
 # The Global Clustering Coefficient is the number of closed trianges over the total number of open or closed triplets.
 # A triplet contain three nodes with 2 edges. A triangle contain three closed overlapping triplets, one centered on each of the nodes
 
-# In[15]:
+# In[49]:
 
 
 #Global Clustering Coefficient
@@ -166,7 +215,7 @@ clusteringCoefficient = nx.average_clustering(G)
 
 # Printing Graph Analytics 
 
-# In[16]:
+# In[50]:
 
 
 print("Average Shortest Path Length: ", averagePathLength, "\n")
@@ -175,7 +224,7 @@ print("Clustering Coefficient: ", clusteringCoefficient, "\n")
 
 # Sorting the Dictionary according to value in descending order
 
-# In[17]:
+# In[51]:
 
 
 def sortDiscDesc(d):
@@ -185,47 +234,39 @@ def sortDiscDesc(d):
 
 # Betweenness Centrality of a node is the sum of the fraction of all pairs shortest paths that pass through the node in question
 
-# In[18]:
+# In[55]:
 
 
 #Betweeness Centrality
 betweennessCentrality = nx.betweenness_centrality(G, normalized=True)
 betweennessCentrality = sortDiscDesc(betweennessCentrality)
 
+print(betweennessCentrality)
+
 
 # Page Rank determines the popularity of a node in the whole dataset, implying how important the node is in the dataset. Therefore, this implies the more active senders and receivers of emails in the dataset
 
-# In[19]:
+# In[56]:
 
 
 #Page Rank
 pr = nx.pagerank(G, 0.4)
+print(pr)
 
 
 # Force Directed Graph using NetworkX on the JSON File
 
-# In[45]:
+# In[66]:
 
 
-# fixing the size of the figure 
-plt.figure(figsize =(10, 7)) 
-  
-node_color = [G.degree(v) for v in G] 
-# node colour is a list of degrees of nodes 
-  
-node_size = [0.0005 * nx.get_node_attributes(G, 'population')[v] for v in G] 
-# size of node is a list of population of cities 
-  
-edge_width = [0.0015 * G[u][v]['weight'] for u, v in G.edges()] 
-# width of edge is a list of weight of edges 
-  
-nx.draw_networkx(G, node_size = node_size,  
-                 node_color = node_color, alpha = 0.7, 
-                 with_labels = True, width = edge_width, 
-                 edge_color ='.4', cmap = plt.cm.Blues) 
-  
-plt.axis('off') 
-plt.tight_layout(); 
+weights = [G[u][v]['weight'] for u,v in dataset]
+
+node_sizes = []
+for n in SG.nodes():
+    node_sizes.append(betweennessCentrality[n])
+
+nx.draw_kamada_kawai(SG, node_size=node_sizes, with_labels=True, font_size=8, width=weights)
+plt.show()
 
 
 # In[ ]:
