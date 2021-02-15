@@ -351,7 +351,7 @@ def findClosestCentroids(centroids, data):    #ic is a list of centroids, X is t
         distance=[]
         for j in centroids:
             distance.append(get_cos(float(i[1]), float(j[1])))
-        print(distance)
+
         assigned_centroid.append(np.argmin(distance))
     return assigned_centroid
 
@@ -375,8 +375,6 @@ def calc_centroids(clusters, data):
 for i in range(5):
     closest_centroids = findClosestCentroids(centroids, user_Vectors)
     centroidss, df = calc_centroids(closest_centroids, user_Vectors)
-    print("Centroids:\n",centroidss)
-
 
 # # Outputting results to JSON files
 
@@ -404,8 +402,6 @@ print(ranked_users)
 #json file
 users = {}
 for user, val in ranked_users:
-    print("user", user)
-    print("val", val)
     users[user] = val
 with open('users.json', 'w') as outfile:
     json.dump(users, outfile)
@@ -432,19 +428,16 @@ for k in dataset:
         temp.append(k1)
         edges[k0].extend(temp)
     else:
-        temp.append("children: " + k1)
+        temp.append(k1)
         edges[k0] = temp
 
     if k1 in edges.keys():    
         temp.append(k0)
         edges[k1].extend(temp)
     else:
-        temp.append("children: " + k0)
+        temp.append(k0)
         edges[k1] = temp
 
 print(edges)
 with open('force_directed.json', 'w') as outfile:
     json.dump(edges, outfile)
-
-
-
