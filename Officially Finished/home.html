@@ -28,20 +28,6 @@
     <div class="main-content">
       <h1>Dashboard</h1>
 
-      <!-- JavaScript Directed Graph-->
-      <div class="panel-wrapper">
-        <div class="panel-head">
-          Force Directed Graph
-        </div>
-        <div class="panel-body">
-          This is the Body
-          <div id="force-directed">
-            <script src="//d3js.org/d3.v3.min.js"></script>
-            <script type="text/javascript" src="forcedirected.js"></script>
-          </div>
-        </div>
-      </div>
-
       <!--Bubble Chart-->
       <div class="panel-wrapper">
         <div class="panel-head">
@@ -57,7 +43,7 @@
             <script type="text/javascript" src="bubble.js"></script>
             <script>
 
-              d3.json('users.json', function (error, data) {
+              d3.csv('users.csv', function (error, data) {
                 if (error) {
                   console.error('Error getting or parsing the data.');
                   throw error;
@@ -83,7 +69,8 @@
           This is body
           <div id="cloud">
             <script src="https://d3js.org/d3.v3.min.js"></script>
-            <script src="../d3.layout.cloud.js"></script>
+            <script src="https://github.com/jasondavies/d3-cloud/tree/master/build/d3.layout.cloud.js"></script>
+            <script type ="text/javascript" src="d3.layout.cloud.js"></script>
             <script>
               var user = "grace.trent@enron.com"
               d3.json('keyword_cloud.json', function (error, data) {
@@ -121,6 +108,20 @@
         </div>
 
       </div>
+
+      <!-- JavaScript Directed Graph-->
+      {% comment %} <div class="panel-wrapper">
+        <div class="panel-head">
+          Force Directed Graph
+        </div>
+        <div class="panel-body">
+          This is the Body
+          <div id="force-directed">
+            <script src="https://d3js.org/d3.v3.min.js"></script>
+            <script type="text/javascript" src="forcedirected.js"></script>
+          </div>
+        </div>
+      </div> {% endcomment %}
 </body>
 
 <!--
