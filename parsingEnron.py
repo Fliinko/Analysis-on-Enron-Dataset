@@ -4,16 +4,14 @@ from email.parser import Parser
 import nltk
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
-import pandas as pd
 
-import matplotlib.pyplot as plt
-from scipy.spatial import distance
-
-#Libraries for TF-IDF, Cosine Similarity and K-means
+#Libraries for TF-IDF, Cosine Similarity, K-means and output
 import math
 import numpy as np
 from collections import Counter
 import random
+import pandas as pd
+from scipy.spatial import distance
 import json
 
 
@@ -34,6 +32,7 @@ class Email:
 emails = []
 email_addresses = []
 
+#directory to dataset
 rootdir = "maildirtest"
 for directory, subdirectory, filenames in  os.walk(rootdir):
     for filename in filenames:
@@ -156,8 +155,8 @@ def remove_symbols(data):
 
 # # Pre-processing the dataset
 
-#does not pay attention to email replies. Therfore it will include "original"
-#also does not take into consideration the "None" emails
+#Does not pay attention to email replies. Therfore it will include "original"
+#Also, emails which have no sender/recipient are set as "None" email addresses
 for data in dataset:
     dataset[data] = tokenize(dataset[data])
     dataset[data] = change_case(dataset[data])
@@ -208,7 +207,6 @@ def get_unique_words(dataset):
     return unique_terms
 
 
-
 list_of_documents = list(dataset.values())
 list_of_keys = list(dataset.keys())
 
@@ -245,10 +243,9 @@ for i in range(0, len(tf_idf)):
 
 
 """ 
-Get all documents which user X participates in (recieves or sends)
-Get all the TF.IDF values of said documents (tfidf of each term in each doc user X is found), and store their average
-Link the average as the TF.IDF associated with User X
-Repeat for all users
+Getting the weight of each user (average weight of their correspondence) 
+and 
+Compiling the keyword cloud for each user (most used terms in all their documents)
 """
 
 user_tfidf = {}
@@ -263,21 +260,22 @@ for user in email_addresses:
     # Get dictionary of all words a particular user has in all their documents
     dict_of_user = {k:v for k,v in tf_idf.items() if (k[0][0]==user or k[0][1]==user)}
 
-    # Calculating the average values for each user
+    # Calculating the average values of all the terms in the user's documents
     list_of_values = dict_of_user.values()
     if (len(list_of_values) > 0):
         avg_value = sum(list_of_values)/len(list_of_values)
     else:
         avg_value = 0
 
+    #storing it in a dictionary
     user_tfidf[user] = avg_value
+
 
     # Getting word cloud
     user_cloud = sorted(dict_of_user.items(), key=lambda x:x[1], reverse=True)
     
     temp_list = []
     
-
     n = number_of_words
     if len(user_cloud) < number_of_words:
         n = len(user_cloud)
@@ -290,9 +288,6 @@ for user in email_addresses:
         
 
     keyword_cloud[user] = temp_list
-
-    if(counter == 10):
-        break
 
 
 # Changing the dictionary to Vectors
@@ -308,10 +303,8 @@ only need to do a single level of clustering, that is, no hierarchies
 are being requested. The clusters need to be visualised using an
 interactive bubble chart (or equivalent), and when a cluster bub-
 ble is clicked, the keyword-cloud representing that cluster should
-be displayed.
-(need to use cosine similarity)
-For visualisations and clustering we can ignore the users which had very little participation
-
+be displayed. 
+"""
 
 # # K-means
 
@@ -334,21 +327,22 @@ def get_dist(a, b):
     a = np.array(a)
     b = np.array(b)
     
+    """
     print("a: ", a, type(a))
     print("b :", b, type(b))
     print("np.dot(a, b)", np.dot(a, b))
     print("np.linalg.norm(a)", np.linalg.norm(a))
     print("np.linalg.norm(b)", np.linalg.norm(b))
     print("np.linalg.norm(a)*np.linalg.norm(b)", np.linalg.norm(a) * np.linalg.norm(b))
-
+    """
     cos_sim = ((np.dot(a, b))/np.multiply((np.linalg.norm(a)),(np.linalg.norm(b))))
 
     print("cosine sim: ", cos_sim)
     return cos_sim
 
 def get_cos(a, b):
-    cos = distance.cosine(a,b)
-    return cos
+    cos_sim = distance.cosine(a,b)
+    return cos_sim
 
 # Assigning each item of data to a centroid
 def findClosestCentroids(centroids, data):    #ic is a list of centroids, X is the np array of data
@@ -356,8 +350,6 @@ def findClosestCentroids(centroids, data):    #ic is a list of centroids, X is t
     for i in data:
         distance=[]
         for j in centroids:
-            print("i: ", i, i[1], type(i[1]))
-            print("j :", j, j[1], type(j[1]))
             distance.append(get_cos(float(i[1]), float(j[1])))
         print(distance)
         assigned_centroid.append(np.argmin(distance))
@@ -373,75 +365,43 @@ def calc_centroids(clusters, data):
     for c in set(new_df['Cluster']):
         current_cluster = new_df[new_df['Cluster'] == c][new_df.columns]   #[new_df.columns[:-1]]
         cluster_mean = current_cluster.mean(axis=1)
-        print("cluster mean", cluster_mean) #cluster which node belogs to
+        #cluster which node belogs to
         new_centroids.append(cluster_mean)
 
-    return new_centroids
+    return new_centroids, new_df
 
 
 #running the algorithms 10 times and plotting each result
-for i in range(10):
+for i in range(5):
     closest_centroids = findClosestCentroids(centroids, user_Vectors)
-    new_centroids = calc_centroids(closest_centroids, user_Vectors)
-    print("Clusters:\n",new_centroids)
+    centroidss, df = calc_centroids(closest_centroids, user_Vectors)
+    print("Centroids:\n",centroidss)
 
-"""
+
 # # Outputting results to JSON files
 
 #keyword cloud json
+"""
 with open('keyword_cloud.json', 'w') as outfile:
     json.dump(keyword_cloud, outfile)
-
+"""
 
 #k-means json
 """ 
-with open('kmeans.json', 'w') as outfile:
-    json.dump(kmeans, outfile)
-""" 
+with open('centroids.json', 'w') as outfile:
+    list = centroids.tolist()
+    json.dump(list, outfile)
 
-ranked_users = user_Vectors[user_Vectors[:,1].argsort()[::-1]]
-users = {}
-for user, val in ranked_users:
-    print("user", user)
-    print("val", val)
-    users[user] = val
-with open('test.csv', 'w') as f:
-    for key in users.keys():
-        f.write("%s,%s\n"%(key,users[key]))
-
-
-#force-directed
-
-edges = {}
-temp = []
-for k in dataset:
-
-    k0 = str(k[0])
-    k1 = str(k[1])
-    if k0 in edges.keys():
-        temp.append("children: " + k1)
-        edges[k0].append(temp)
-
-    else:
-        temp.append("children: " + k1)
-        edges[k0] = temp
-
-    if k[1] in edges.keys():    
-        temp.append("children: " + k0)
-        edges[k1].append(temp)
-    else:
-        temp.append("children: " + k0)
-        edges[k1] = temp
-
-with open('force_directed.json', 'w') as outfile:
-    json.dump(edges, outfile)
-
+"""
+#df.to_json(r'C:\xampp\htdocs\web-intelligence-group-project\k-means-frame.json')
+ 
 
 # most active users
 """ 
 ranked_users = user_Vectors[user_Vectors[:,1].argsort()[::-1]]
 print(ranked_users)
 
+#json file
 users = {}
 for user, val in ranked_users:
     print("user", user)
@@ -449,4 +409,42 @@ for user, val in ranked_users:
     users[user] = val
 with open('users.json', 'w') as outfile:
     json.dump(users, outfile)
-""" 
+
+#csv file
+for user, val in ranked_users:
+    users[user] = val
+with open('users.csv', 'w') as f:
+    for key in users.keys():
+        f.write("%s,%s\n"%(key,users[key]))
+"""
+
+#force-directed
+"""
+"""
+edges = {}
+for k in dataset:
+
+    temp = []
+    k0 = str(k[0])
+    k1 = str(k[1])
+    
+    if k0 in edges.keys():
+        temp.append(k1)
+        edges[k0].extend(temp)
+    else:
+        temp.append("children: " + k1)
+        edges[k0] = temp
+
+    if k1 in edges.keys():    
+        temp.append(k0)
+        edges[k1].extend(temp)
+    else:
+        temp.append("children: " + k0)
+        edges[k1] = temp
+
+print(edges)
+with open('force_directed.json', 'w') as outfile:
+    json.dump(edges, outfile)
+
+
+
